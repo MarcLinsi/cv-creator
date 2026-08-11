@@ -18,4 +18,12 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    // Un template n'exporte pas un composant mais un descripteur de mise en page
+    // (colonnes, cadre, titres, construction des blocs) — voir templates/index.js.
+    // Fast Refresh ne sait pas recharger ça à chaud : éditer un template
+    // provoque un rechargement complet, ce qui est le prix assumé du contrat.
+    files: ['src/templates/*.jsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
 ])

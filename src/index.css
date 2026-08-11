@@ -20,12 +20,32 @@
   --cv-fs: 1;
 }
 
+/* Pile des feuilles dans l'aperçu */
+.cv-preview-stack {
+  display: flex;
+  flex-direction: column;
+}
+.cv-preview-stack .cv-page {
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Source du PDF : les mêmes pages qu'à l'écran, à l'échelle 1, tenues hors
+   champ tant qu'on n'imprime pas. */
+.cv-print-source {
+  position: absolute;
+  left: -99999px;
+  top: 0;
+  pointer-events: none;
+}
+
 /* --- Export PDF via le moteur d'impression du navigateur ---------------------
    Le PDF est le rendu natif du navigateur : texte sélectionnable, SVG vectoriel,
-   polices embarquées. On n'imprime que .cv-print-source (la sonde de mesure),
-   c'est-à-dire le document complet en un seul exemplaire à hauteur naturelle ;
-   toute l'interface est masquée. La pagination est faite par @page, les
-   templates portant déjà des `break-inside-avoid` sur leurs blocs. */
+   polices embarquées. On imprime .cv-print-source, qui monte exactement le même
+   plan de pages que l'aperçu ; toute l'interface est masquée.
+   Chaque .cv-page fait déjà une page A4 pile : le navigateur n'a rien à
+   fragmenter, il lui suffit de changer de feuille entre deux blocs. */
 @media print {
   @page {
     size: A4;
@@ -48,18 +68,20 @@
     display: none !important;
   }
 
-  /* La source quitte sa position hors écran pour devenir le document imprimé.
-     Sa hauteur (pageCount × 297mm) est posée en inline par App.jsx et ne doit
-     surtout pas être écrasée ici : c'est elle qui tient le footer en bas de la
-     dernière page. `overflow: visible` évite que le navigateur traite le bloc
-     comme insécable et refuse de le fragmenter entre les pages. */
   .cv-print-source {
     position: static !important;
     left: auto !important;
     top: auto !important;
-    width: 210mm !important;
-    overflow: visible !important;
+  }
+
+  .cv-print-source .cv-page {
     box-shadow: none !important;
+  }
+  /* Saut explicite plutôt que de compter sur le débordement : une feuille fait
+     297mm pour un papier de 297mm, et le moindre sous-pixel d'écart insérerait
+     une page blanche. */
+  .cv-print-source .cv-page + .cv-page {
+    break-before: page;
   }
 }
 

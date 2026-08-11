@@ -3,11 +3,24 @@ import ClassicTemplate from './ClassicTemplate'
 import MinimalTemplate from './MinimalTemplate'
 import VertTemplate from './VertTemplate'
 
+/**
+ * Chaque template décrit sa page plutôt que de dessiner un document entier :
+ *   columns / columnGap / sectionGap  géométrie du flux
+ *   Page({ data, accent, pageIndex, pageCount, banner, children })
+ *                                     cadre remonté à l'identique sur chaque
+ *                                     page ; expose la zone de flux en .cv-flow
+ *   Banner({ data, accent })          bandeau de tête, page 1 seulement (ou null)
+ *   SectionTitle({ section, accent, repeated, gapBefore })
+ *   buildSections({ data, accent })   [{ key, title, blocks: [{ key, keepWithNext, node }] }]
+ *
+ * C'est le moteur (src/lib/paginate.js) qui répartit les blocs ; un template ne
+ * décide jamais où tombe une coupure.
+ */
 export const templates = {
-  vert: { label: 'Vert', Component: VertTemplate, defaultAccent: '#86c06a' },
-  modern: { label: 'Moderne', Component: ModernTemplate, defaultAccent: '#4f46e5' },
-  classic: { label: 'Classique', Component: ClassicTemplate, defaultAccent: '#1e3a5f' },
-  minimal: { label: 'Minimal', Component: MinimalTemplate, defaultAccent: '#0d9488' },
+  vert: VertTemplate,
+  modern: ModernTemplate,
+  classic: ClassicTemplate,
+  minimal: MinimalTemplate,
 }
 
 export const templateKeys = Object.keys(templates)
