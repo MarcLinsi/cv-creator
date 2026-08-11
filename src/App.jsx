@@ -1,6 +1,4 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import html2canvas from 'html2canvas'
-import { jsPDF } from 'jspdf'
 import Editor from './components/Editor'
 import { sampleResume } from './data/resume'
 import { templates, templateKeys } from './templates'
@@ -81,6 +79,20 @@ export default function App() {
     if (!node) return
     setExporting(true)
     setHighlight(null)
+    // html2canvas + jsPDF pèsent ~600 kB et ne servent qu'ici : on les charge
+    // au premier export plutôt qu'au démarrage de l'app. Le chargement peut
+    // échouer (hors ligne, chunk manquant) : on relâche le bouton dans ce cas.
+    let html2canvas, jsPDF
+    try {
+      ;[{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ])
+    } catch (err) {
+      setExporting(false)
+      console.error('Chargement des librairies PDF impossible', err)
+      return
+    }
     const name = `CV_${data.infos.prenom || 'cv'}_${data.infos.nom || ''}`.trim().replace(/\s+/g, '_')
     // Capture the off-screen probe at the full multi-page height in one shot,
     // then slice the tall canvas into A4-height pages. Slicing one capture is
