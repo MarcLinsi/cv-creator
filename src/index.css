@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-100 text-slate-800 font-sans antialiased;
+  }
+}
+
+/* A4 page used by the preview and PDF export */
+.cv-page {
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  background: #fff;
+  /* Font-size multiplier for the "Taille du texte" control. Templates read it
+     via calc(var(--cv-fs) * Npx) so only the text scales, not the layout. The
+     page itself stays a fixed A4 box, so the PDF canvas never changes size. */
+  --cv-fs: 1;
+}
+
+/* When generating the PDF we strip the on-screen shadow/scaling */
+.cv-export {
+  box-shadow: none !important;
+  transform: none !important;
+  margin: 0 !important;
+}
+
+/* Global font override (Apparence panel). data-font="auto" keeps the template's own font. */
+.cv-page[data-font='sans'],
+.cv-page[data-font='sans'] * {
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
+.cv-page[data-font='serif'],
+.cv-page[data-font='serif'] * {
+  font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif !important;
+}
+.cv-page[data-font='mono'],
+.cv-page[data-font='mono'] * {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace !important;
+}
+
+/* Click-to-edit: highlight an editable element in the preview on hover */
+.cv-page [data-edit-id] {
+  cursor: pointer;
+}
+.cv-hl {
+  outline: 2px solid var(--cv-accent, #6366f1) !important;
+  outline-offset: 3px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--cv-accent, #6366f1) 8%, transparent);
+}
+/* Hide hover affordances while exporting the PDF */
+.cv-export [data-edit-id] {
+  cursor: auto;
+}
+.cv-export .cv-hl {
+  outline: none !important;
+  background: transparent !important;
+}
+
+/* Editor: flash the section that was clicked from the preview */
+.edit-flash {
+  outline: 2px solid #6366f1;
+  outline-offset: 3px;
+  border-radius: 10px;
+  transition: outline-color 0.2s ease;
+}
