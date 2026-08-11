@@ -41,18 +41,23 @@
     print-color-adjust: exact;
   }
 
-  /* Barre du haut, éditeur, aperçu à l'échelle : rien de tout ça n'est imprimé. */
-  .app-shell {
+  /* Barre du haut, éditeur, aperçu à l'échelle, sonde de mesure : rien de tout
+     ça n'est imprimé. */
+  .app-shell,
+  .cv-measure {
     display: none !important;
   }
 
-  /* La sonde quitte sa position hors écran pour devenir le document imprimé. */
+  /* La source quitte sa position hors écran pour devenir le document imprimé.
+     Sa hauteur (pageCount × 297mm) est posée en inline par App.jsx et ne doit
+     surtout pas être écrasée ici : c'est elle qui tient le footer en bas de la
+     dernière page. `overflow: visible` évite que le navigateur traite le bloc
+     comme insécable et refuse de le fragmenter entre les pages. */
   .cv-print-source {
     position: static !important;
     left: auto !important;
     top: auto !important;
     width: 210mm !important;
-    height: auto !important;
     overflow: visible !important;
     box-shadow: none !important;
   }

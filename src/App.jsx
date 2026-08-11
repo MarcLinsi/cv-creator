@@ -4,8 +4,17 @@ import { sampleResume } from './data/resume'
 import { templates, templateKeys } from './templates'
 
 const ACCENTS = ['#86c06a', '#4f46e5', '#0d9488', '#dc2626', '#1e3a5f', '#7c3aed', '#ea580c', '#0f172a']
-const PAGE_WIDTH_PX = 794 // 210mm @ 96dpi
-const PAGE_HEIGHT_PX = 1123 // 297mm @ 96dpi
+
+// La géométrie des pages s'exprime en millimètres, jamais en pixels arrondis :
+// 297mm valent 1122.52px et non 1123, et cette demi-unité par page finit par
+// dépasser le papier — un dépassement d'1px suffit à faire sortir une page
+// blanche supplémentaire du PDF. Les constantes en px ne servent qu'aux calculs
+// de mesure et de mise à l'échelle, où la précision décimale est conservée.
+const PAGE_WIDTH_MM = 210
+const PAGE_HEIGHT_MM = 297
+const MM_TO_PX = 96 / 25.4
+const PAGE_WIDTH_PX = PAGE_WIDTH_MM * MM_TO_PX // 793.70
+const PAGE_HEIGHT_PX = PAGE_HEIGHT_MM * MM_TO_PX // 1122.52
 const PAGE_GAP_PX = 24 // visual gap between page sheets in the preview
 
 export default function App() {
@@ -180,10 +189,13 @@ export default function App() {
                   onMouseLeave={handlePreviewLeave}
                   onClick={handlePreviewClick}
                 >
+                  {/* Même géométrie en mm que la source d'impression, pour que
+                      la feuille affichée et la page du PDF cadrent au même
+                      endroit et que `mt-auto` pose le footer au même endroit. */}
                   <div
                     style={{
-                      height: pageCount * PAGE_HEIGHT_PX,
-                      transform: `translateY(${-i * PAGE_HEIGHT_PX}px)`,
+                      height: `${pageCount * PAGE_HEIGHT_MM}mm`,
+                      transform: `translateY(${-i * PAGE_HEIGHT_MM}mm)`,
                     }}
                   >
                     <Component data={data} accent={accent} />
@@ -198,14 +210,12 @@ export default function App() {
     </div>
 
       {/* Off-screen probe: renders the content at natural A4 width and height so
-          we can measure how many A4 pages it spans. C'est aussi la source du PDF
-          (voir exportPdf et les règles @media print) : un seul exemplaire du
-          document, que le navigateur pagine lui-même. Il est volontairement hors
-          de .app-shell, que l'impression masque entièrement. */}
+          we can measure how many A4 pages it spans. Sa hauteur doit rester libre,
+          c'est toute sa raison d'être — elle n'est donc jamais imprimée. */}
       <div
         ref={measureRef}
         aria-hidden
-        className="cv-page cv-print-source"
+        className="cv-page cv-measure"
         data-font={appearance.font}
         style={{
           position: 'absolute',
@@ -213,6 +223,33 @@ export default function App() {
           top: 0,
           height: 'auto',
           overflow: 'visible',
+          boxShadow: 'none',
+          pointerEvents: 'none',
+          '--cv-accent': accent,
+          '--cv-fs': appearance.scale,
+        }}
+      >
+        <Component data={data} accent={accent} />
+      </div>
+
+      {/* Source du PDF (voir exportPdf et les règles @media print) : le document
+          complet en un seul exemplaire, que le navigateur pagine lui-même.
+          Sa hauteur est fixée au nombre exact de pages — même géométrie que le
+          conteneur interne des feuilles de l'aperçu. C'est indispensable : les
+          templates placent leur footer avec `mt-auto` dans un parent `h-full`,
+          qui n'a d'espace à repousser que si cette hauteur est explicite. À
+          hauteur libre, le footer remonterait se coller au contenu au lieu de
+          tenir le bas de la dernière page.
+          Il est volontairement hors de .app-shell, que l'impression masque. */}
+      <div
+        aria-hidden
+        className="cv-page cv-print-source"
+        data-font={appearance.font}
+        style={{
+          position: 'absolute',
+          left: -99999,
+          top: 0,
+          height: `${pageCount * PAGE_HEIGHT_MM}mm`,
           boxShadow: 'none',
           pointerEvents: 'none',
           '--cv-accent': accent,
