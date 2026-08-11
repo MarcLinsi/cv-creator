@@ -60,6 +60,24 @@ npm run dev
 
 L'application démarre sur http://localhost:5173.
 
+## Docker
+
+```bash
+docker compose up --build
+```
+
+L'application est servie sur http://localhost:8080.
+
+Sans compose :
+
+```bash
+docker build -t cv-gen . && docker run --rm -p 8080:80 cv-gen
+```
+
+L'image est construite en deux étapes. Node ne sert qu'à produire `dist/` ; l'image livrée est une `nginx:alpine` qui ne contient ni `node_modules`, ni sources, ni chaîne de build. Les fichiers de `dist/assets` portant un hash de contenu dans leur nom, ils sont mis en cache un an, tandis qu'`index.html` est explicitement exclu du cache — sinon un déploiement laisserait les navigateurs pointer vers les anciens assets.
+
+`src/data/resume.perso.js` est exclu par le [.dockerignore](.dockerignore) : ce fichier de données personnelles n'entre ni dans le contexte de build, ni dans une image qu'on pourrait publier.
+
 ## Scripts
 
 | Commande | Effet |

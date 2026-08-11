@@ -1,0 +1,26 @@
+# Réinstallés dans l'image par npm ci, et reconstruits par npm run build
+node_modules
+dist
+
+# Historique et outillage local
+.git
+.gitignore
+.claude
+.vscode
+.idea
+
+# Rebuts d'archive macOS
+__MACOSX
+.DS_Store
+
+# Données personnelles réelles : ce fichier est ignoré par git, il n'a rien à
+# faire non plus dans le contexte de build ni dans une image qu'on publie.
+src/data/resume.perso.js
+
+# Inutiles à la construction
+*.log
+README.md
+LICENSE
+Dockerfile
+.dockerignore
+compose.yaml
