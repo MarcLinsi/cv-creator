@@ -12,11 +12,24 @@ Application 100 % front-end — aucun serveur, aucune donnée envoyée nulle par
 - **Clic pour éditer** — survoler un bloc de l'aperçu le surligne, cliquer dessus place le focus sur le champ correspondant dans l'éditeur
 - **Apparence** — choix de la police, de la taille du texte et de la couleur d'accent (8 teintes, chaque template ayant la sienne par défaut)
 - **Photo optionnelle** — chargée depuis le disque, encodée dans la page
-- **Export PDF** — capture unique du document complet, découpée en pages A4
+- **Export PDF vectoriel** — voir ci-dessous
+
+## Export PDF
+
+Le PDF est produit par le moteur d'impression du navigateur (`@page` + `window.print()`), pas par une capture raster. Concrètement :
+
+- le texte reste du **texte** — sélectionnable, cherchable, lisible par les robots ATS
+- les icônes et le fond triangulé restent **vectoriels**, nets à n'importe quel zoom
+- les polices sont **embarquées** dans le fichier
+- le rendu ne peut pas diverger de l'aperçu, puisque c'est le même moteur qui dessine les deux
+
+Ce qui est imprimé est la sonde de mesure : le document complet **en un seul exemplaire** à hauteur naturelle. Les feuilles de l'aperçu sont des copies fenêtrées du même contenu — les imprimer dupliquerait le texte dans le fichier. La pagination est laissée au navigateur, guidé par les `break-inside-avoid` que portent les blocs des templates, ce qui évite de couper une expérience en deux.
+
+Au clic sur « Télécharger le PDF », la boîte de dialogue d'impression s'ouvre : choisir **« Enregistrer au format PDF »** comme destination. Le nom de fichier proposé (`CV_Prenom_Nom`) vient du titre du document, que l'app ajuste le temps de l'impression.
 
 ## Stack
 
-React 19 · Vite · TailwindCSS 3 · html2canvas + jsPDF pour l'export
+React 19 · Vite · TailwindCSS 3 — aucune dépendance d'exécution pour le PDF
 
 ## Démarrage
 

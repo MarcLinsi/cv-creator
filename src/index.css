@@ -20,11 +20,42 @@
   --cv-fs: 1;
 }
 
-/* When generating the PDF we strip the on-screen shadow/scaling */
-.cv-export {
-  box-shadow: none !important;
-  transform: none !important;
-  margin: 0 !important;
+/* --- Export PDF via le moteur d'impression du navigateur ---------------------
+   Le PDF est le rendu natif du navigateur : texte sélectionnable, SVG vectoriel,
+   polices embarquées. On n'imprime que .cv-print-source (la sonde de mesure),
+   c'est-à-dire le document complet en un seul exemplaire à hauteur naturelle ;
+   toute l'interface est masquée. La pagination est faite par @page, les
+   templates portant déjà des `break-inside-avoid` sur leurs blocs. */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    /* Sans ça le fond triangulé du template Vert et les aplats de couleur
+       seraient supprimés à l'impression. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Barre du haut, éditeur, aperçu à l'échelle : rien de tout ça n'est imprimé. */
+  .app-shell {
+    display: none !important;
+  }
+
+  /* La sonde quitte sa position hors écran pour devenir le document imprimé. */
+  .cv-print-source {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 210mm !important;
+    height: auto !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
 }
 
 /* Global font override (Apparence panel). data-font="auto" keeps the template's own font. */
@@ -51,15 +82,6 @@
   border-radius: 6px;
   background: color-mix(in srgb, var(--cv-accent, #6366f1) 8%, transparent);
 }
-/* Hide hover affordances while exporting the PDF */
-.cv-export [data-edit-id] {
-  cursor: auto;
-}
-.cv-export .cv-hl {
-  outline: none !important;
-  background: transparent !important;
-}
-
 /* Editor: flash the section that was clicked from the preview */
 .edit-flash {
   outline: 2px solid #6366f1;

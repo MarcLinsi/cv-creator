@@ -13,7 +13,6 @@ export default function App() {
   const [templateKey, setTemplateKey] = useState('vert')
   const [accent, setAccent] = useState(templates.vert.defaultAccent)
   const [scale, setScale] = useState(1)
-  const [exporting, setExporting] = useState(false)
   const [focusTarget, setFocusTarget] = useState(null)
   const [appearance, setAppearance] = useState({ font: 'auto', scale: 1 })
   const [pageCount, setPageCount] = useState(1)
@@ -74,72 +73,33 @@ export default function App() {
     return () => ro.disconnect()
   }, [data, appearance, templateKey])
 
-  const exportPdf = async () => {
-    const node = measureRef.current
-    if (!node) return
-    setExporting(true)
+  // Le PDF est produit par le moteur d'impression du navigateur, pas par une
+  // capture raster : le texte reste du texte, les SVG restent vectoriels et les
+  // polices sont embarquées. C'est aussi le même moteur que celui qui dessine
+  // l'aperçu, donc le rendu ne peut pas diverger.
+  //
+  // On imprime la sonde de mesure (`cv-print-source`) : c'est le document
+  // complet en un seul exemplaire à hauteur naturelle. Les feuilles de l'aperçu
+  // sont, elles, N copies fenêtrées du même contenu — les imprimer ferait N fois
+  // le texte dans le PDF. La pagination est laissée à `@page` + aux règles
+  // `break-inside-avoid` déjà portées par les templates.
+  const exportPdf = () => {
     setHighlight(null)
-    // html2canvas + jsPDF pèsent ~600 kB et ne servent qu'ici : on les charge
-    // au premier export plutôt qu'au démarrage de l'app. Le chargement peut
-    // échouer (hors ligne, chunk manquant) : on relâche le bouton dans ce cas.
-    let html2canvas, jsPDF
-    try {
-      ;[{ default: html2canvas }, { jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf'),
-      ])
-    } catch (err) {
-      setExporting(false)
-      console.error('Chargement des librairies PDF impossible', err)
-      return
-    }
+    // Chrome et Edge dérivent le nom de fichier proposé du titre du document.
     const name = `CV_${data.infos.prenom || 'cv'}_${data.infos.nom || ''}`.trim().replace(/\s+/g, '_')
-    // Capture the off-screen probe at the full multi-page height in one shot,
-    // then slice the tall canvas into A4-height pages. Slicing one capture is
-    // far more reliable than rendering each page's CSS transform window through
-    // html2canvas (which mis-renders translated/clipped sheets).
-    const SCALE = 3
-    const fullHeight = pageCount * PAGE_HEIGHT_PX
-    const prevHeight = node.style.height
-    const prevOverflow = node.style.overflow
-    node.style.height = `${fullHeight}px`
-    node.style.overflow = 'hidden'
-    try {
-      const full = await html2canvas(node, {
-        scale: SCALE,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        width: PAGE_WIDTH_PX,
-        height: fullHeight,
-        windowWidth: PAGE_WIDTH_PX,
-        windowHeight: fullHeight,
-      })
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-      const pw = pdf.internal.pageSize.getWidth()
-      const ph = pdf.internal.pageSize.getHeight()
-      const sliceW = PAGE_WIDTH_PX * SCALE
-      const sliceH = PAGE_HEIGHT_PX * SCALE
-      const slice = document.createElement('canvas')
-      slice.width = sliceW
-      slice.height = sliceH
-      const sctx = slice.getContext('2d')
-      for (let i = 0; i < pageCount; i++) {
-        sctx.fillStyle = '#ffffff'
-        sctx.fillRect(0, 0, sliceW, sliceH)
-        sctx.drawImage(full, 0, i * sliceH, sliceW, sliceH, 0, 0, sliceW, sliceH)
-        if (i > 0) pdf.addPage()
-        pdf.addImage(slice.toDataURL('image/png'), 'PNG', 0, 0, pw, ph, undefined, 'FAST')
-      }
-      pdf.save(`${name}.pdf`)
-    } finally {
-      node.style.height = prevHeight
-      node.style.overflow = prevOverflow
-      setExporting(false)
+    const prevTitle = document.title
+    document.title = name
+    const restore = () => {
+      document.title = prevTitle
+      window.removeEventListener('afterprint', restore)
     }
+    window.addEventListener('afterprint', restore)
+    window.print()
   }
 
   return (
-    <div className="flex h-screen flex-col">
+    <>
+    <div className="app-shell flex h-screen flex-col">
       {/* Top bar */}
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
         <div className="flex items-center gap-2">
@@ -167,10 +127,9 @@ export default function App() {
 
           <button
             onClick={exportPdf}
-            disabled={exporting}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-60"
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
           >
-            {exporting ? 'Génération…' : 'Télécharger le PDF'}
+            Télécharger le PDF
           </button>
         </div>
       </header>
@@ -236,12 +195,17 @@ export default function App() {
         </div>
       </div>
 
+    </div>
+
       {/* Off-screen probe: renders the content at natural A4 width and height so
-          we can measure how many A4 pages it spans. */}
+          we can measure how many A4 pages it spans. C'est aussi la source du PDF
+          (voir exportPdf et les règles @media print) : un seul exemplaire du
+          document, que le navigateur pagine lui-même. Il est volontairement hors
+          de .app-shell, que l'impression masque entièrement. */}
       <div
         ref={measureRef}
         aria-hidden
-        className="cv-page"
+        className="cv-page cv-print-source"
         data-font={appearance.font}
         style={{
           position: 'absolute',
@@ -257,6 +221,6 @@ export default function App() {
       >
         <Component data={data} accent={accent} />
       </div>
-    </div>
+    </>
   )
 }
