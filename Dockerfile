@@ -29,5 +29,9 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 
 # wget est fourni par le busybox d'Alpine, inutile d'installer curl.
+# L'adresse est écrite en 127.0.0.1 et surtout pas en `localhost` : /etc/hosts
+# fait résoudre localhost en ::1 comme en 127.0.0.1, busybox tente l'IPv6 en
+# premier, et nginx n'écoute qu'en IPv4 — le conteneur était signalé unhealthy
+# alors qu'il servait parfaitement les requêtes.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
-  CMD wget -q --spider http://localhost/ || exit 1
+  CMD wget -q --spider http://127.0.0.1/ || exit 1
