@@ -121,17 +121,17 @@ function Banner({ data, accent }) {
   const { infos } = data
   const initials = `${infos.prenom?.[0] || ''}${infos.nom?.[0] || ''}`
   return (
-    <header className="relative flex shrink-0 items-center gap-6 px-10 py-8">
+    <header className="relative flex shrink-0 items-center gap-5 px-10 py-6">
       <PolygonBg seed={7} />
       <div className="relative shrink-0" data-edit-id="infos">
         {infos.photo ? (
           <img
             src={infos.photo}
             alt=""
-            className="h-28 w-28 rounded-full object-cover ring-4 ring-white/70"
+            className="h-24 w-24 rounded-full object-cover ring-4 ring-white/70"
           />
         ) : (
-          <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white/70 text-2xl font-bold text-slate-500 ring-4 ring-white/70">
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/70 text-2xl font-bold text-slate-500 ring-4 ring-white/70">
             {initials}
           </div>
         )}
@@ -155,7 +155,7 @@ function Banner({ data, accent }) {
         {data.resume && (
           <p
             data-edit-id="resume"
-            className="mx-auto mt-3 max-w-md text-[length:calc(var(--cv-fs)*11.5px)] leading-snug text-slate-700"
+            className="mx-auto mt-2 max-w-md text-[length:calc(var(--cv-fs)*11.5px)] leading-snug text-slate-700"
           >
             {data.resume}
           </p>
@@ -168,7 +168,7 @@ function Banner({ data, accent }) {
 function Footer({ data }) {
   const { infos } = data
   return (
-    <footer className="relative grid shrink-0 grid-cols-3 gap-4 px-10 py-5 text-center text-[length:calc(var(--cv-fs)*11px)] text-slate-700">
+    <footer className="relative grid shrink-0 grid-cols-3 gap-4 px-10 py-3 text-center text-[length:calc(var(--cv-fs)*11px)] leading-snug text-slate-700">
       <PolygonBg seed={42} />
       <div className="relative" data-edit-id="infos">
         {infos.dateNaissance && <p>{infos.dateNaissance}</p>}
@@ -192,8 +192,8 @@ function Footer({ data }) {
 function Page({ data, accent, pageIndex, banner, children }) {
   return (
     <div className="flex h-full min-h-full flex-col font-sans text-slate-800">
-      {pageIndex === 0 ? banner : <div className="h-10 shrink-0" />}
-      <div className="cv-flow min-h-0 flex-1 overflow-hidden px-10 py-7">{children}</div>
+      {pageIndex === 0 ? banner : <div className="h-6 shrink-0" />}
+      <div className="cv-flow min-h-0 flex-1 overflow-hidden px-10 py-5">{children}</div>
       <Footer data={data} accent={accent} />
     </div>
   )
@@ -205,8 +205,8 @@ function Page({ data, accent, pageIndex, banner, children }) {
 function SectionTitle({ section, t, repeated, gapBefore }) {
   return (
     <h2
-      className={`flex items-center gap-2 pb-3 text-[length:calc(var(--cv-fs)*15px)] font-bold text-slate-900${
-        gapBefore ? ' pt-6' : ''
+      className={`flex items-center gap-2 pb-2 text-[length:calc(var(--cv-fs)*15px)] font-bold text-slate-900${
+        gapBefore ? ' pt-4' : ''
       }`}
     >
       <span className="text-slate-700">
@@ -232,7 +232,7 @@ function buildSections({ data, accent, t }) {
         key: `${i}:head`,
         keepWithNext: bullets.length > 0,
         node: (
-          <div className={bullets.length ? 'pb-1' : 'pb-4'} data-edit-id={`experiences.${i}`}>
+          <div className={bullets.length ? 'pb-0.5' : 'pb-3'} data-edit-id={`experiences.${i}`}>
             <p className="text-[length:calc(var(--cv-fs)*9.5px)] font-medium uppercase tracking-wider text-slate-400">
               {exp.debut} – {exp.fin}
               {exp.lieu && <span className="ml-2 text-slate-400">{exp.lieu}</span>}
@@ -250,7 +250,7 @@ function buildSections({ data, accent, t }) {
         blocks.push({
           key: `${i}:b${j}`,
           node: (
-            <ul className={j === bullets.length - 1 ? 'pb-4' : 'pb-1'} data-edit-id={`experiences.${i}`}>
+            <ul className={j === bullets.length - 1 ? 'pb-3' : 'pb-1'} data-edit-id={`experiences.${i}`}>
               <Bullet accent={accent}>{line}</Bullet>
             </ul>
           ),
@@ -267,7 +267,7 @@ function buildSections({ data, accent, t }) {
       blocks: data.formations.map((f, i) => ({
         key: String(i),
         node: (
-          <div className="pb-4" data-edit-id={`formations.${i}`}>
+          <div className="pb-3" data-edit-id={`formations.${i}`}>
             <p className="text-[length:calc(var(--cv-fs)*9.5px)] font-medium uppercase tracking-wider text-slate-400">
               {f.debut} – {f.fin}
               {f.lieu && <span className="ml-2">{f.lieu}</span>}
@@ -303,7 +303,7 @@ function buildSections({ data, accent, t }) {
         node: (
           <div
             className={`flex justify-between text-[length:calc(var(--cv-fs)*11.5px)] ${
-              i === data.langues.length - 1 ? 'pb-4' : 'pb-1'
+              i === data.langues.length - 1 ? 'pb-3' : 'pb-1'
             }`}
             data-edit-id="langues"
           >
@@ -329,7 +329,7 @@ function buildSections({ data, accent, t }) {
         key: `skill:${i}`,
         node: (
           <div
-            className="grid grid-cols-2 items-center gap-3 pb-2.5"
+            className="grid grid-cols-2 items-center gap-3 pb-2"
             data-edit-id={`competences.${i}`}
           >
             <span className="text-[length:calc(var(--cv-fs)*11.5px)] text-slate-700">{c.nom}</span>
@@ -362,7 +362,7 @@ function buildSections({ data, accent, t }) {
       key: 'soft:liste',
       node: (
         <p
-          className="pb-4 text-[length:calc(var(--cv-fs)*11.5px)] leading-snug text-slate-700"
+          className="pb-3 text-[length:calc(var(--cv-fs)*11.5px)] leading-snug text-slate-700"
           data-edit-id="softSkills"
         >
           {data.softSkills.map((s) => s.nom).filter(Boolean).join(' · ')}
@@ -388,7 +388,7 @@ function buildSections({ data, accent, t }) {
         key: `techno:${i}`,
         node: (
           <div
-            className={i === data.technos.length - 1 ? 'pb-4' : 'pb-2'}
+            className={i === data.technos.length - 1 ? 'pb-3' : 'pb-1.5'}
             data-edit-id={`technos.${i}`}
           >
             {tech.categorie && (
@@ -414,7 +414,7 @@ export default {
   defaultAccent: '#86c06a',
   columns: 2,
   columnGap: 32,
-  sectionGap: 24,
+  sectionGap: 16,
   Page,
   Banner,
   SectionTitle,
