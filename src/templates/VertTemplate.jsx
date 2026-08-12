@@ -4,6 +4,11 @@ function lines(text) {
   return (text || '').split('\n').map((l) => l.trim()).filter(Boolean)
 }
 
+/** Les technos d'une catégorie sont saisies sur une ligne, séparées par des virgules. */
+function tags(text) {
+  return (text || '').split(',').map((t) => t.trim()).filter(Boolean)
+}
+
 const PALETTE = ['#d9eece', '#cde7bb', '#c3e1ac', '#e2f1d7', '#d0e9c2']
 
 // Génère un champ de triangles "low-poly" déterministe pour les bandeaux.
@@ -331,6 +336,62 @@ function buildSections({ data, accent, t }) {
                 style={{ left: `calc(${c.niveau}% - 6px)` }}
               />
             </div>
+          </div>
+        ),
+      })
+    })
+  }
+  if (data.softSkills.length) {
+    competences.push({
+      key: 'soft:label',
+      keepWithNext: true,
+      node: (
+        <p className="pb-1.5 text-[length:calc(var(--cv-fs)*10px)] font-semibold uppercase tracking-wider text-slate-400">
+          – {t.softSkills}
+        </p>
+      ),
+    })
+    competences.push({
+      key: 'soft:liste',
+      node: (
+        <p
+          className="pb-4 text-[length:calc(var(--cv-fs)*11.5px)] leading-snug text-slate-700"
+          data-edit-id="softSkills"
+        >
+          {data.softSkills.map((s) => s.nom).filter(Boolean).join(' · ')}
+        </p>
+      ),
+    })
+  }
+  if (data.technos.length) {
+    competences.push({
+      key: 'techno:label',
+      keepWithNext: true,
+      node: (
+        <p className="pb-1.5 text-[length:calc(var(--cv-fs)*10px)] font-semibold uppercase tracking-wider text-slate-400">
+          – {t.technologies}
+        </p>
+      ),
+    })
+    // Colonne étroite (≈340px) : la catégorie prend sa propre ligne. Le libellé
+    // en gouttière à gauche, retenu pour les templates pleine largeur, ne
+    // laisserait ici que quelques caractères à la liste.
+    data.technos.forEach((tech, i) => {
+      competences.push({
+        key: `techno:${i}`,
+        node: (
+          <div
+            className={i === data.technos.length - 1 ? 'pb-4' : 'pb-2'}
+            data-edit-id={`technos.${i}`}
+          >
+            {tech.categorie && (
+              <p className="text-[length:calc(var(--cv-fs)*10px)] font-bold text-slate-800">
+                {tech.categorie}
+              </p>
+            )}
+            <p className="text-[length:calc(var(--cv-fs)*11px)] leading-snug text-slate-700">
+              {tags(tech.items).join(' · ')}
+            </p>
           </div>
         ),
       })

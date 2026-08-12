@@ -1,5 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { emptyExperience, emptyEducation, emptyCompetence } from '../data/resume'
+import {
+  emptyExperience,
+  emptyEducation,
+  emptyCompetence,
+  emptySoftSkill,
+  emptyTechno,
+} from '../data/resume'
 import { useUi } from '../i18n'
 
 const RegistryContext = createContext(null)
@@ -442,6 +448,75 @@ export default function Editor({
                 className="w-full accent-indigo-600"
               />
             </label>
+          </RepeatableCard>
+        ))}
+      </Section>
+
+      <Section
+        title={ui.softSkillsTitre}
+        addLabel={ui.ajouter}
+        editId="softSkills"
+        onAdd={() => setData((d) => ({ ...d, softSkills: [...d.softSkills, { ...emptySoftSkill }] }))}
+      >
+        {data.softSkills.map((s, i) => (
+          <RepeatableCard
+            key={i}
+            editId={`softSkills.${i}`}
+            onRemove={() =>
+              setData((d) => ({ ...d, softSkills: d.softSkills.filter((_, j) => j !== i) }))
+            }
+          >
+            <Field
+              label={ui.softSkill}
+              value={s.nom}
+              onChange={(v) =>
+                setData((d) => {
+                  const softSkills = [...d.softSkills]
+                  softSkills[i] = { nom: v }
+                  return { ...d, softSkills }
+                })
+              }
+            />
+          </RepeatableCard>
+        ))}
+      </Section>
+
+      <Section
+        title={ui.technosTitre}
+        addLabel={ui.ajouter}
+        editId="technos"
+        onAdd={() => setData((d) => ({ ...d, technos: [...d.technos, { ...emptyTechno }] }))}
+      >
+        {data.technos.map((t, i) => (
+          <RepeatableCard
+            key={i}
+            editId={`technos.${i}`}
+            onRemove={() => setData((d) => ({ ...d, technos: d.technos.filter((_, j) => j !== i) }))}
+          >
+            <Field
+              label={ui.categorie}
+              value={t.categorie}
+              placeholder={ui.categoriePlaceholder}
+              onChange={(v) =>
+                setData((d) => {
+                  const technos = [...d.technos]
+                  technos[i] = { ...technos[i], categorie: v }
+                  return { ...d, technos }
+                })
+              }
+            />
+            <Field
+              label={ui.technosItems}
+              value={t.items}
+              placeholder={ui.technosPlaceholder}
+              onChange={(v) =>
+                setData((d) => {
+                  const technos = [...d.technos]
+                  technos[i] = { ...technos[i], items: v }
+                  return { ...d, technos }
+                })
+              }
+            />
           </RepeatableCard>
         ))}
       </Section>

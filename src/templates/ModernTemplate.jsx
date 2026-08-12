@@ -2,6 +2,11 @@ function lines(text) {
   return (text || '').split('\n').map((l) => l.trim()).filter(Boolean)
 }
 
+/** Les technos d'une catégorie sont saisies sur une ligne, séparées par des virgules. */
+function tags(text) {
+  return (text || '').split(',').map((t) => t.trim()).filter(Boolean)
+}
+
 /**
  * La colonne latérale colorée fait partie du cadre : elle est donc redessinée
  * sur chaque page, et seul le contenu de la colonne principale est paginé.
@@ -59,6 +64,15 @@ function Sidebar({ data, accent, pageIndex, t }) {
         </div>
       )}
 
+
+      {data.softSkills.length > 0 && (
+        <div className="mt-6" data-edit-id="softSkills">
+          <h2 className="mb-2 text-xs font-bold uppercase tracking-wider">{t.softSkills}</h2>
+          <p className="text-[length:calc(var(--cv-fs)*11px)] leading-snug text-white/90">
+            {data.softSkills.map((s) => s.nom).filter(Boolean).join(' · ')}
+          </p>
+        </div>
+      )}
       {data.langues.length > 0 && (
         <div className="mt-6" data-edit-id="langues">
           <h2 className="mb-2 text-xs font-bold uppercase tracking-wider">{t.langues}</h2>
@@ -176,6 +190,27 @@ function buildSections({ data, t }) {
               {f.etablissement}
               {f.lieu && ` · ${f.lieu}`}
             </p>
+          </div>
+        ),
+      })),
+    })
+  }
+
+  if (data.technos.length) {
+    sections.push({
+      key: 'technos',
+      title: t.technologies,
+      // Une catégorie par bloc : la coupure de page peut tomber entre deux
+      // catégories, jamais au milieu de l'une d'elles.
+      blocks: data.technos.map((tech, i) => ({
+        key: String(i),
+        node: (
+          <div
+            className={`grid grid-cols-[6.5rem_1fr] gap-3 ${i === data.technos.length - 1 ? 'pb-6' : 'pb-1.5'}`}
+            data-edit-id={`technos.${i}`}
+          >
+            <span className="text-[length:calc(var(--cv-fs)*11px)] font-semibold text-slate-500">{tech.categorie}</span>
+            <span className="text-[length:calc(var(--cv-fs)*11.5px)] text-slate-700">{tags(tech.items).join(' · ')}</span>
           </div>
         ),
       })),

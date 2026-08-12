@@ -2,6 +2,11 @@ function lines(text) {
   return (text || '').split('\n').map((l) => l.trim()).filter(Boolean)
 }
 
+/** Les technos d'une catégorie sont saisies sur une ligne, séparées par des virgules. */
+function tags(text) {
+  return (text || '').split(',').map((t) => t.trim()).filter(Boolean)
+}
+
 function Banner({ data, accent }) {
   const { infos } = data
   const contact = [infos.email, infos.telephone, infos.ville, infos.site].filter(Boolean)
@@ -158,6 +163,44 @@ function buildSections({ data, t }) {
             <span className="font-bold">{l.langue}</span>
             {l.niveau && ` — ${l.niveau}`}
           </p>
+        ),
+      })),
+    })
+  }
+
+  if (data.softSkills.length) {
+    sections.push({
+      key: 'softSkills',
+      title: t.softSkills,
+      blocks: [
+        {
+          key: 'liste',
+          node: (
+            <p className="pb-2" data-edit-id="softSkills">
+              {data.softSkills.map((s) => s.nom).filter(Boolean).join(' · ')}
+            </p>
+          ),
+        },
+      ],
+    })
+  }
+
+  if (data.technos.length) {
+    sections.push({
+      key: 'technos',
+      title: t.technologies,
+      // Une catégorie par bloc : la coupure de page peut tomber entre deux
+      // catégories, jamais au milieu de l'une d'elles.
+      blocks: data.technos.map((tech, i) => ({
+        key: String(i),
+        node: (
+          <div
+            className={`grid grid-cols-[6.5rem_1fr] gap-3 ${i === data.technos.length - 1 ? 'pb-2' : 'pb-1'}`}
+            data-edit-id={`technos.${i}`}
+          >
+            <span className="font-bold">{tech.categorie}</span>
+            <span className="">{tags(tech.items).join(' · ')}</span>
+          </div>
         ),
       })),
     })

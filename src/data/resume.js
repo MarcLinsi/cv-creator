@@ -19,6 +19,15 @@ export const emptyEducation = {
 
 export const emptyCompetence = { nom: '', niveau: 80 }
 
+// Pas de niveau ici, à dessein : noter sa propre « capacité d'écoute » à 85 %
+// ne veut rien dire. Les barres restent aux hard skills, où elles en ont un.
+export const emptySoftSkill = { nom: '' }
+
+// `items` est une liste séparée par des virgules, comme `description` l'est par
+// des retours à la ligne : une seule zone de saisie par catégorie plutôt qu'un
+// champ par techno.
+export const emptyTechno = { categorie: '', items: '' }
+
 export const emptyLangue = { langue: '', niveau: '' }
 
 export const emptyInfos = {
@@ -40,6 +49,8 @@ export const emptyResume = {
   experiences: [],
   formations: [],
   competences: [],
+  softSkills: [],
+  technos: [],
   langues: [],
 }
 
@@ -110,6 +121,17 @@ export const sampleResume = {
     { nom: 'React', niveau: 88 },
     { nom: 'SQL', niveau: 82 },
     { nom: 'WordPress', niveau: 80 },
+  ],
+  softSkills: [
+    { nom: 'Autonomie' },
+    { nom: "Travail en équipe" },
+    { nom: 'Communication' },
+    { nom: 'Rigueur' },
+  ],
+  technos: [
+    { categorie: 'Frontend', items: 'React, Vue, TypeScript, TailwindCSS' },
+    { categorie: 'Backend', items: 'Node.js, PHP, MySQL, REST' },
+    { categorie: 'Outils', items: 'Git, Docker, Jira, Figma' },
   ],
   langues: [
     { langue: 'Français', niveau: 'Langue maternelle' },

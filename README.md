@@ -11,10 +11,29 @@ Application 100 % front-end — aucun serveur, aucune donnée envoyée nulle par
 - **Pagination réelle** — voir ci-dessous : chaque page a son cadre, et une section qui déborde reprend page suivante avec son titre réécrit
 - **Clic pour éditer** — survoler un bloc de l'aperçu le surligne, cliquer dessus place le focus sur le champ correspondant dans l'éditeur
 - **Apparence** — choix de la police, de la taille du texte et de la couleur d'accent (8 teintes, chaque template ayant la sienne par défaut)
+- **Compétences en trois registres** — hard skills notés sur une barre, soft skills en liste simple, et technos groupées par catégorie
 - **Photo optionnelle** — chargée depuis le disque, encodée dans la page
 - **Deux langues indépendantes** — voir ci-dessous
 - **Sauvegarde et import** — voir ci-dessous
 - **Export PDF vectoriel** — voir ci-dessous
+
+## Compétences
+
+Trois registres distincts, parce qu'ils ne se présentent pas de la même façon :
+
+- **Hard skills** — notés de 0 à 100, rendus sur une barre.
+- **Soft skills** — sans niveau, volontairement. Noter sa propre « capacité d'écoute » à 85 % ne veut rien dire et se retourne souvent contre le candidat. Rendus en liste séparée par des points.
+- **Technos** — groupées par catégorie. Une catégorie porte un libellé (`Frontend`) et une liste saisie **sur une seule ligne, séparée par des virgules** — même principe que les descriptions d'expérience, séparées par des retours à la ligne. Une zone de saisie par catégorie plutôt qu'un champ par techno.
+
+```
+Frontend   React · Vue · TypeScript · TailwindCSS
+Backend    Node.js · PHP · MySQL · REST
+Outils     Git · Docker · Jira · Figma
+```
+
+Le libellé tient une gouttière à gauche dans les templates pleine largeur (Classique, Minimal, Moderne). Le template Vert, dont les colonnes font ~340 px, place la catégorie sur sa propre ligne : une gouttière n'y laisserait que quelques caractères à la liste. C'est précisément ce que permet le contrat de template — chaque template décide de sa mise en page, le moteur ne décide que des coupures.
+
+Chaque catégorie est un bloc distinct pour le moteur de pagination : une coupure de page peut tomber entre deux catégories, jamais au milieu de l'une d'elles.
 
 ## Langues
 

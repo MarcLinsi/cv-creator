@@ -68,6 +68,11 @@ export function normalizeResume(brut) {
       nom: texte(c?.nom),
       niveau: nombre(c?.niveau, 80, 0, 100),
     })),
+    softSkills: liste(o.softSkills).map((s) => ({ nom: texte(s?.nom) })),
+    technos: liste(o.technos).map((t) => ({
+      categorie: texte(t?.categorie),
+      items: texte(t?.items),
+    })),
     langues: liste(o.langues).map((l) => ({
       langue: texte(l?.langue),
       niveau: texte(l?.niveau),

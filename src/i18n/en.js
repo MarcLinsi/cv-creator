@@ -60,6 +60,15 @@ export default {
     competence: 'Skill',
     niveauPourcent: (n) => `Level — ${n}%`,
 
+    softSkillsTitre: 'Soft skills',
+    softSkill: 'Soft skill',
+
+    technosTitre: 'Technologies',
+    categorie: 'Category',
+    technosItems: 'Technologies (comma separated)',
+    categoriePlaceholder: 'Frontend',
+    technosPlaceholder: 'React, Vue, TypeScript',
+
     languesTitre: 'Languages',
     langue: 'Language',
     niveau: 'Level',
@@ -71,6 +80,8 @@ export default {
     formations: 'Education',
     competences: 'Skills',
     langues: 'Languages',
+    softSkills: 'Soft skills',
+    technologies: 'Technologies',
     profil: 'Profile',
     hardSkills: 'Hard skills',
     suite: '(continued)',
