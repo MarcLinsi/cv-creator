@@ -3,6 +3,8 @@ import Editor from './components/Editor'
 import ResumeMeasurer from './components/ResumeMeasurer'
 import ResumePages from './components/ResumePages'
 import { paginate } from './lib/paginate'
+import { downloadResume, parseResumeFile } from './lib/resumeFile'
+import { chargerBrouillon, enregistrerBrouillon } from './lib/storage'
 import { sampleResume } from './data/resume'
 import { templates, templateKeys } from './templates'
 
@@ -20,16 +22,32 @@ const PAGE_WIDTH_PX = PAGE_WIDTH_MM * MM_TO_PX // 793.70
 const PAGE_HEIGHT_PX = PAGE_HEIGHT_MM * MM_TO_PX // 1122.52
 const PAGE_GAP_PX = 24 // visual gap between page sheets in the preview
 
+// Le brouillon est relu une seule fois, au chargement du module : trois
+// initialiseurs d'état séparés reliraient le localStorage trois fois, avec le
+// risque qu'ils divergent.
+const BROUILLON = (() => {
+  const b = chargerBrouillon()
+  const key = b && templates[b.settings.templateKey] ? b.settings.templateKey : 'vert'
+  return {
+    data: b?.resume ?? sampleResume,
+    templateKey: key,
+    accent: b?.settings.accent || templates[key].defaultAccent,
+    appearance: b?.settings.appearance ?? { font: 'auto', scale: 1 },
+  }
+})()
+
 export default function App() {
-  const [data, setData] = useState(sampleResume)
-  const [templateKey, setTemplateKey] = useState('vert')
-  const [accent, setAccent] = useState(templates.vert.defaultAccent)
+  const [data, setData] = useState(BROUILLON.data)
+  const [templateKey, setTemplateKey] = useState(BROUILLON.templateKey)
+  const [accent, setAccent] = useState(BROUILLON.accent)
   const [scale, setScale] = useState(1)
   const [focusTarget, setFocusTarget] = useState(null)
-  const [appearance, setAppearance] = useState({ font: 'auto', scale: 1 })
+  const [appearance, setAppearance] = useState(BROUILLON.appearance)
   const [metrics, setMetrics] = useState(null)
+  const [notice, setNotice] = useState(null)
 
   const previewWrapRef = useRef(null)
+  const fileInputRef = useRef(null)
   const hlRef = useRef(null)
 
   const template = templates[templateKey]
@@ -92,6 +110,35 @@ export default function App() {
     return () => ro.disconnect()
   }, [])
 
+  // Sauvegarde automatique, différée : sans ce délai, chaque frappe au clavier
+  // réécrirait tout le CV — photo comprise — dans le localStorage.
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setNotice(enregistrerBrouillon(data, { templateKey, accent, appearance }))
+    }, 400)
+    return () => clearTimeout(id)
+  }, [data, templateKey, accent, appearance])
+
+  const exporterFichier = () => downloadResume(data, { templateKey, accent, appearance })
+
+  const importerFichier = async (e) => {
+    const fichier = e.target.files?.[0]
+    // Réinitialiser tout de suite permet de réimporter le même fichier après
+    // l'avoir corrigé : sans ça, `change` ne se déclencherait pas deux fois.
+    e.target.value = ''
+    if (!fichier) return
+    try {
+      const { resume, settings } = parseResumeFile(await fichier.text())
+      setData(resume)
+      if (templates[settings.templateKey]) setTemplateKey(settings.templateKey)
+      if (settings.accent) setAccent(settings.accent)
+      setAppearance(settings.appearance)
+      setNotice(null)
+    } catch (err) {
+      setNotice(err.message)
+    }
+  }
+
   // Le PDF est produit par le moteur d'impression du navigateur, pas par une
   // capture raster : le texte reste du texte, les SVG restent vectoriels et les
   // polices sont embarquées. C'est aussi le même moteur que celui qui dessine
@@ -116,13 +163,17 @@ export default function App() {
     <>
       <div className="app-shell flex h-screen flex-col">
         {/* Top bar */}
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
+        <header className="flex flex-wrap items-center justify-between gap-y-2 border-b border-slate-200 bg-white px-6 py-3">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-indigo-600">CV-Gen</span>
-            <span className="text-xs text-slate-400">générateur de CV</span>
+            <span className="whitespace-nowrap text-lg font-bold text-indigo-600">CV-Gen</span>
+            {/* Le sous-titre est décoratif : il disparaît en premier plutôt que
+                de pousser les commandes sur une ligne supplémentaire. */}
+            <span className="hidden whitespace-nowrap text-xs text-slate-400 xl:inline">
+              générateur de CV
+            </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
             {/* Template selector */}
             <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1">
               {templateKeys.map((key) => (
@@ -140,6 +191,30 @@ export default function App() {
               ))}
             </div>
 
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                title="Charger un CV depuis un fichier .json"
+              >
+                Importer
+              </button>
+              <button
+                onClick={exporterFichier}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                title="Enregistrer le CV dans un fichier .json"
+              >
+                Exporter
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json,.json"
+                onChange={importerFichier}
+                className="hidden"
+              />
+            </div>
+
             <button
               onClick={exportPdf}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
@@ -148,6 +223,18 @@ export default function App() {
             </button>
           </div>
         </header>
+
+        {notice && (
+          <div className="flex items-start gap-3 border-b border-amber-200 bg-amber-50 px-6 py-2.5 text-sm text-amber-900">
+            <span className="flex-1">{notice}</span>
+            <button
+              onClick={() => setNotice(null)}
+              className="shrink-0 rounded px-2 font-medium text-amber-700 hover:bg-amber-100"
+            >
+              Fermer
+            </button>
+          </div>
+        )}
 
         {/* Workspace */}
         <div className="flex min-h-0 flex-1">

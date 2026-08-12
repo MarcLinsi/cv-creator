@@ -19,6 +19,30 @@ export const emptyEducation = {
 
 export const emptyCompetence = { nom: '', niveau: 80 }
 
+export const emptyLangue = { langue: '', niveau: '' }
+
+export const emptyInfos = {
+  prenom: '',
+  nom: '',
+  titre: '',
+  email: '',
+  telephone: '',
+  ville: '',
+  adresse: '',
+  dateNaissance: '',
+  site: '',
+  photo: '',
+}
+
+export const emptyResume = {
+  infos: { ...emptyInfos },
+  resume: '',
+  experiences: [],
+  formations: [],
+  competences: [],
+  langues: [],
+}
+
 export const sampleResume = {
   infos: {
     prenom: 'Camille',

@@ -12,7 +12,30 @@ Application 100 % front-end — aucun serveur, aucune donnée envoyée nulle par
 - **Clic pour éditer** — survoler un bloc de l'aperçu le surligne, cliquer dessus place le focus sur le champ correspondant dans l'éditeur
 - **Apparence** — choix de la police, de la taille du texte et de la couleur d'accent (8 teintes, chaque template ayant la sienne par défaut)
 - **Photo optionnelle** — chargée depuis le disque, encodée dans la page
+- **Sauvegarde et import** — voir ci-dessous
 - **Export PDF vectoriel** — voir ci-dessous
+
+## Sauvegarde et import
+
+**Sauvegarde automatique.** Le CV en cours est conservé dans le `localStorage` et rechargé à la visite suivante — template, couleur d'accent et réglages de texte compris. L'écriture est différée, sinon chaque frappe réécrirait tout le CV, photo comprise. Rien ne sort du navigateur.
+
+**Export.** « Exporter » produit un `.json` nommé d'après l'identité saisie. Le fichier contient le modèle de données complet, photo incluse : le réimport est fidèle, sans perte.
+
+**Import.** « Importer » accepte ce fichier, mais aussi un objet de CV nu — ce qu'on obtient en recopiant `sampleResume` à la main.
+
+Un fichier importé est traité comme une entrée non fiable : il a pu être édité, tronqué, ou produit par une version antérieure. Tout passe donc par `normalizeResume` ([`src/lib/resumeFile.js`](src/lib/resumeFile.js)), qui **reconstruit** la structure champ par champ au lieu de faire confiance à celle du fichier. Concrètement :
+
+| Entrée | Résultat |
+| --- | --- |
+| `experiences: "pas un tableau"` | `[]` |
+| `prenom: { objet: 1 }` | `""`, et non `"[object Object]"` |
+| `niveau: "beaucoup"` / `9999` | `80` (défaut) / `100` (borné) |
+| `photo: "javascript:…"` | rejetée — seuls les data-URI d'image et les URL http(s) sont acceptés |
+| `version` supérieure à la connue | refus explicite plutôt que dégradation silencieuse |
+
+Sans ça, une valeur aberrante ne casserait pas l'import mais le rendu, bien plus loin et sans rapport visible avec sa cause.
+
+Le format choisi est le JSON et non le CSV : le modèle est imbriqué et hétérogène — un objet `infos`, quatre listes aux colonnes différentes, des descriptions multi-lignes et une photo en base64. Aucune de ces formes ne tient dans un tableau plat sans perte ou sans rendre le fichier inmanipulable en tableur.
 
 ## Export PDF
 
@@ -93,6 +116,8 @@ L'image est construite en deux étapes. Node ne sert qu'à produire `dist/` ; l'
 src/
   App.jsx                        Assemblage : mesure → plan de pages → aperçu + source PDF
   lib/paginate.js                Moteur de répartition en pages et colonnes (pur, sans DOM)
+  lib/resumeFile.js              Export/import JSON + normalisation défensive des entrées
+  lib/storage.js                 Sauvegarde automatique dans le localStorage
   components/ResumeMeasurer.jsx  Mesure hors écran des capacités et des hauteurs de blocs
   components/ResumePages.jsx     Rend un plan de pages (utilisé par l'aperçu et par le PDF)
   components/Editor.jsx          Formulaire d'édition
