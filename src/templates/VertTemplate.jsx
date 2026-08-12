@@ -273,6 +273,13 @@ function buildSections({ data, accent, t }) {
               {f.lieu && <span className="ml-2">{f.lieu}</span>}
             </p>
             <h3 className="mt-0.5 text-[length:calc(var(--cv-fs)*12.5px)] font-bold text-slate-900">{f.diplome}</h3>
+            {/* Même traitement que l'entreprise sous un intitulé de poste, pour
+                que formation et expérience se lisent de la même façon. */}
+            {f.etablissement && (
+              <p className="text-[length:calc(var(--cv-fs)*11.5px)] font-bold text-slate-800">
+                {f.etablissement}
+              </p>
+            )}
           </div>
         ),
       })),
