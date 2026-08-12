@@ -38,25 +38,25 @@ function Page({ pageIndex, banner, children }) {
   )
 }
 
-function SectionTitle({ section, accent, repeated, gapBefore }) {
+function SectionTitle({ section, accent, t, repeated, gapBefore }) {
   return (
     <h2
       className={`pb-2 text-sm font-bold uppercase tracking-[0.15em]${gapBefore ? ' pt-5' : ''}`}
       style={{ color: accent }}
     >
       {section.title}
-      {repeated && <span className="ml-2 text-xs font-normal normal-case tracking-normal text-slate-400">(suite)</span>}
+      {repeated && <span className="ml-2 text-xs font-normal normal-case tracking-normal text-slate-400">{t.suite}</span>}
     </h2>
   )
 }
 
-function buildSections({ data }) {
+function buildSections({ data, t }) {
   const sections = []
 
   if (data.resume) {
     sections.push({
       key: 'profil',
-      title: 'Profil',
+      title: t.profil,
       blocks: [
         {
           key: 'texte',
@@ -106,13 +106,13 @@ function buildSections({ data }) {
         })
       })
     })
-    sections.push({ key: 'experiences', title: 'Expérience professionnelle', blocks })
+    sections.push({ key: 'experiences', title: t.experiences, blocks })
   }
 
   if (data.formations.length) {
     sections.push({
       key: 'formations',
-      title: 'Formation',
+      title: t.formations,
       blocks: data.formations.map((f, i) => ({
         key: String(i),
         node: (
@@ -133,7 +133,7 @@ function buildSections({ data }) {
   if (data.competences.length) {
     sections.push({
       key: 'competences',
-      title: 'Compétences',
+      title: t.competences,
       blocks: [
         {
           key: 'liste',
@@ -150,7 +150,7 @@ function buildSections({ data }) {
   if (data.langues.length) {
     sections.push({
       key: 'langues',
-      title: 'Langues',
+      title: t.langues,
       blocks: data.langues.map((l, i) => ({
         key: String(i),
         node: (

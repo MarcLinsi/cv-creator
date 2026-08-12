@@ -31,7 +31,7 @@ function Page({ pageIndex, banner, children }) {
 
 // Le libellé de section est aligné sur la gouttière des dates, pour conserver
 // la grille 80px/1fr des lignes de contenu.
-function SectionTitle({ section, repeated, gapBefore }) {
+function SectionTitle({ section, t, repeated, gapBefore }) {
   return (
     <h2
       className={`pb-3 text-[length:calc(var(--cv-fs)*10px)] font-semibold uppercase tracking-[0.25em] text-slate-400${
@@ -39,7 +39,7 @@ function SectionTitle({ section, repeated, gapBefore }) {
       }`}
     >
       {section.title}
-      {repeated && <span className="ml-2 tracking-normal opacity-70">(suite)</span>}
+      {repeated && <span className="ml-2 tracking-normal opacity-70">{t.suite}</span>}
     </h2>
   )
 }
@@ -53,13 +53,13 @@ function Row({ period, children, editId, className = '' }) {
   )
 }
 
-function buildSections({ data, accent }) {
+function buildSections({ data, accent, t }) {
   const sections = []
 
   if (data.resume) {
     sections.push({
       key: 'profil',
-      title: 'Profil',
+      title: t.profil,
       blocks: [
         {
           key: 'texte',
@@ -114,13 +114,13 @@ function buildSections({ data, accent }) {
         })
       })
     })
-    sections.push({ key: 'experiences', title: 'Expérience', blocks })
+    sections.push({ key: 'experiences', title: t.experiences, blocks })
   }
 
   if (data.formations.length) {
     sections.push({
       key: 'formations',
-      title: 'Formation',
+      title: t.formations,
       blocks: data.formations.map((f, i) => ({
         key: String(i),
         node: (
@@ -139,7 +139,7 @@ function buildSections({ data, accent }) {
   if (data.competences.length) {
     sections.push({
       key: 'competences',
-      title: 'Compétences',
+      title: t.competences,
       blocks: [
         {
           key: 'puces',
@@ -164,7 +164,7 @@ function buildSections({ data, accent }) {
   if (data.langues.length) {
     sections.push({
       key: 'langues',
-      title: 'Langues',
+      title: t.langues,
       blocks: data.langues.map((l, i) => ({
         key: String(i),
         node: (

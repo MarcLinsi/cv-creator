@@ -19,11 +19,13 @@ export default defineConfig([
     },
   },
   {
-    // Un template n'exporte pas un composant mais un descripteur de mise en page
-    // (colonnes, cadre, titres, construction des blocs) — voir templates/index.js.
-    // Fast Refresh ne sait pas recharger ça à chaud : éditer un template
-    // provoque un rechargement complet, ce qui est le prix assumé du contrat.
-    files: ['src/templates/*.jsx'],
+    // Deux endroits n'exportent pas que des composants, par conception :
+    //   - un template exporte un descripteur de mise en page (colonnes, cadre,
+    //     titres, construction des blocs) — voir templates/index.js ;
+    //   - i18n expose son provider avec le registre des langues et le hook.
+    // Fast Refresh ne sait pas recharger ça à chaud : les éditer provoque un
+    // rechargement complet, prix assumé de ces deux contrats.
+    files: ['src/templates/*.jsx', 'src/i18n/*.jsx'],
     rules: { 'react-refresh/only-export-components': 'off' },
   },
 ])

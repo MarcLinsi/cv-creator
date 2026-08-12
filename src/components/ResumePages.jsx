@@ -13,6 +13,8 @@ export default function ResumePages({
   accent,
   appearance,
   pages,
+  t,
+  lang,
   interactive = false,
   handlers,
 }) {
@@ -30,6 +32,9 @@ export default function ResumePages({
     <div
       key={pageIndex}
       className="cv-page"
+      // La langue du document, distincte de celle de l'interface : c'est elle
+      // qui gouverne la césure du navigateur dans le PDF.
+      lang={lang}
       data-font={appearance.font}
       style={{ '--cv-accent': accent, '--cv-fs': appearance.scale }}
       onMouseOver={interactive ? handlers?.onMouseOver : undefined}
@@ -39,9 +44,10 @@ export default function ResumePages({
       <Page
         data={data}
         accent={accent}
+        t={t}
         pageIndex={pageIndex}
         pageCount={pages.length}
-        banner={pageIndex === 0 && Banner ? <Banner data={data} accent={accent} /> : null}
+        banner={pageIndex === 0 && Banner ? <Banner data={data} accent={accent} t={t} /> : null}
       >
         <div
           className="grid h-full"
@@ -58,6 +64,7 @@ export default function ResumePages({
                       key={`t${itemIndex}`}
                       section={entry.section}
                       accent={accent}
+                      t={t}
                       repeated={item.repeated}
                       gapBefore={item.gapBefore}
                     />

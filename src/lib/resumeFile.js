@@ -86,6 +86,10 @@ export function normalizeSettings(brut) {
   return {
     templateKey: texte(o.templateKey),
     accent: /^#[0-9a-f]{3,8}$/i.test(accent) ? accent : '',
+    uiLang: texte(o.uiLang),
+    // `null` a un sens précis ici : la langue du CV suit celle du site. Il faut
+    // donc le distinguer d'une langue absente, d'où le passage par undefined.
+    cvLang: o.cvLang == null ? null : texte(o.cvLang),
     appearance: {
       font: POLICES.includes(app.font) ? app.font : 'auto',
       scale: nombre(app.scale, 1, 0.5, 2),

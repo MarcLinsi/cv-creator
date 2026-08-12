@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { emptyExperience, emptyEducation, emptyCompetence } from '../data/resume'
+import { useUi } from '../i18n'
 
 const RegistryContext = createContext(null)
 
@@ -51,6 +52,7 @@ function Section({ title, children, onAdd, addLabel, editId }) {
 
 function RepeatableCard({ children, onRemove, editId }) {
   const register = useContext(RegistryContext)
+  const ui = useUi()
   return (
     <div
       ref={editId && register ? register(editId) : undefined}
@@ -60,7 +62,7 @@ function RepeatableCard({ children, onRemove, editId }) {
         type="button"
         onClick={onRemove}
         className="absolute right-2 top-2 text-xs text-slate-400 hover:text-red-500"
-        aria-label="Supprimer"
+        aria-label={ui.supprimer}
       >
         ✕
       </button>
@@ -69,6 +71,8 @@ function RepeatableCard({ children, onRemove, editId }) {
   )
 }
 
+// Les noms de familles typographiques ne se traduisent pas ; les paliers de
+// taille, si.
 const FONTS = [
   { key: 'auto', label: 'Auto' },
   { key: 'sans', label: 'Sans' },
@@ -76,13 +80,24 @@ const FONTS = [
   { key: 'mono', label: 'Mono' },
 ]
 const SIZES = [
-  { key: 0.9, label: 'Compact' },
-  { key: 1, label: 'Normal' },
-  { key: 1.1, label: 'Grand' },
+  { key: 0.9, tag: 'compact' },
+  { key: 1, tag: 'normal' },
+  { key: 1.1, tag: 'grand' },
 ]
 
-function AppearancePanel({ appearance, setAppearance, accent, setAccent, accents }) {
+function AppearancePanel({
+  appearance,
+  setAppearance,
+  accent,
+  setAccent,
+  accents,
+  locales,
+  cvLangChoisie,
+  setCvLangChoisie,
+  langueSuivieLabel,
+}) {
   const [open, setOpen] = useState(false)
+  const ui = useUi()
   return (
     <section className="rounded-lg border border-slate-200">
       <button
@@ -91,14 +106,14 @@ function AppearancePanel({ appearance, setAppearance, accent, setAccent, accents
         className="flex w-full items-center justify-between px-3 py-2.5 text-left"
       >
         <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Apparence
+          {ui.apparence}
         </span>
         <span className={`text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
       {open && (
         <div className="space-y-4 border-t border-slate-200 px-3 py-3">
           <div>
-            <span className="mb-1.5 block text-xs font-medium text-slate-600">Police</span>
+            <span className="mb-1.5 block text-xs font-medium text-slate-600">{ui.police}</span>
             <div className="flex gap-1.5">
               {FONTS.map((f) => (
                 <button
@@ -118,7 +133,7 @@ function AppearancePanel({ appearance, setAppearance, accent, setAccent, accents
           </div>
 
           <div>
-            <span className="mb-1.5 block text-xs font-medium text-slate-600">Taille du texte</span>
+            <span className="mb-1.5 block text-xs font-medium text-slate-600">{ui.tailleTexte}</span>
             <div className="flex gap-1.5">
               {SIZES.map((s) => (
                 <button
@@ -131,14 +146,48 @@ function AppearancePanel({ appearance, setAppearance, accent, setAccent, accents
                       : 'border-slate-200 text-slate-500 hover:bg-slate-50'
                   }`}
                 >
-                  {s.label}
+                  {ui.tailles[s.tag]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* La langue du CV est un réglage du document, pas de l'application :
+              sa place est ici, à côté de la police et de la couleur, et non
+              dans la barre du haut où se règle la langue du site. */}
+          <div>
+            <span className="mb-1.5 block text-xs font-medium text-slate-600">{ui.langueCv}</span>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCvLangChoisie(null)}
+                className={`rounded-md border px-2 py-1.5 text-xs font-medium transition ${
+                  cvLangChoisie === null
+                    ? 'border-indigo-500 bg-indigo-50 text-indigo-600'
+                    : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                }`}
+              >
+                {`${langueSuivieLabel} — ${ui.langueCvSuitSite}`}
+              </button>
+              {locales.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => setCvLangChoisie(l.code)}
+                  className={`rounded-md border px-2 py-1.5 text-xs font-medium transition ${
+                    cvLangChoisie === l.code
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-600'
+                      : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                  }`}
+                >
+                  {l.label}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <span className="mb-1.5 block text-xs font-medium text-slate-600">Couleur d'accent</span>
+            <span className="mb-1.5 block text-xs font-medium text-slate-600">{ui.couleurAccent}</span>
             <div className="flex flex-wrap gap-2">
               {accents.map((c) => (
                 <button
@@ -149,7 +198,7 @@ function AppearancePanel({ appearance, setAppearance, accent, setAccent, accents
                     accent === c ? 'ring-slate-400' : 'ring-transparent'
                   }`}
                   style={{ backgroundColor: c }}
-                  aria-label={`Couleur ${c}`}
+                  aria-label={ui.couleur(c)}
                 />
               ))}
             </div>
@@ -160,7 +209,21 @@ function AppearancePanel({ appearance, setAppearance, accent, setAccent, accents
   )
 }
 
-export default function Editor({ data, setData, focusTarget, appearance, setAppearance, accent, setAccent, accents }) {
+export default function Editor({
+  data,
+  setData,
+  focusTarget,
+  appearance,
+  setAppearance,
+  accent,
+  setAccent,
+  accents,
+  locales,
+  cvLangChoisie,
+  setCvLangChoisie,
+  langueSuivieLabel,
+}) {
+  const ui = useUi()
   const refs = useRef({})
   const register = useCallback(
     (id) => (node) => {
@@ -219,30 +282,34 @@ export default function Editor({ data, setData, focusTarget, appearance, setAppe
         accent={accent}
         setAccent={setAccent}
         accents={accents}
+        locales={locales}
+        cvLangChoisie={cvLangChoisie}
+        setCvLangChoisie={setCvLangChoisie}
+        langueSuivieLabel={langueSuivieLabel}
       />
-      <Section title="Informations personnelles" editId="infos">
+      <Section title={ui.infosTitre} editId="infos">
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Prénom" value={data.infos.prenom} onChange={(v) => setInfos('prenom', v)} />
-          <Field label="Nom" value={data.infos.nom} onChange={(v) => setInfos('nom', v)} />
+          <Field label={ui.prenom} value={data.infos.prenom} onChange={(v) => setInfos('prenom', v)} />
+          <Field label={ui.nom} value={data.infos.nom} onChange={(v) => setInfos('nom', v)} />
         </div>
-        <Field label="Titre / Poste" value={data.infos.titre} onChange={(v) => setInfos('titre', v)} />
+        <Field label={ui.titrePoste} value={data.infos.titre} onChange={(v) => setInfos('titre', v)} />
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Email" type="email" value={data.infos.email} onChange={(v) => setInfos('email', v)} />
-          <Field label="Téléphone" value={data.infos.telephone} onChange={(v) => setInfos('telephone', v)} />
+          <Field label={ui.email} type="email" value={data.infos.email} onChange={(v) => setInfos('email', v)} />
+          <Field label={ui.telephone} value={data.infos.telephone} onChange={(v) => setInfos('telephone', v)} />
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Ville" value={data.infos.ville} onChange={(v) => setInfos('ville', v)} />
-          <Field label="Site / LinkedIn" value={data.infos.site} onChange={(v) => setInfos('site', v)} />
+          <Field label={ui.ville} value={data.infos.ville} onChange={(v) => setInfos('ville', v)} />
+          <Field label={ui.site} value={data.infos.site} onChange={(v) => setInfos('site', v)} />
         </div>
-        <Field label="Adresse" value={data.infos.adresse} onChange={(v) => setInfos('adresse', v)} />
+        <Field label={ui.adresse} value={data.infos.adresse} onChange={(v) => setInfos('adresse', v)} />
         <Field
-          label="Date de naissance"
+          label={ui.dateNaissance}
           value={data.infos.dateNaissance}
           onChange={(v) => setInfos('dateNaissance', v)}
-          placeholder="01.01.1990"
+          placeholder={ui.dateNaissancePlaceholder}
         />
         <label className="block">
-          <span className="mb-1 block text-xs font-medium text-slate-600">Photo (optionnel)</span>
+          <span className="mb-1 block text-xs font-medium text-slate-600">{ui.photo}</span>
           <input
             type="file"
             accept="image/*"
@@ -255,25 +322,25 @@ export default function Editor({ data, setData, focusTarget, appearance, setAppe
               onClick={() => setInfos('photo', '')}
               className="mt-1 text-xs text-slate-400 hover:text-red-500"
             >
-              Retirer la photo
+              {ui.retirerPhoto}
             </button>
           )}
         </label>
       </Section>
 
-      <Section title="Résumé" editId="resume">
+      <Section title={ui.resumeTitre} editId="resume">
         <Field
-          label="Présentation"
+          label={ui.presentation}
           textarea
           value={data.resume}
           onChange={(v) => setData((d) => ({ ...d, resume: v }))}
-          placeholder="Quelques phrases qui vous présentent…"
+          placeholder={ui.presentationPlaceholder}
         />
       </Section>
 
       <Section
-        title="Expériences"
-        addLabel="Ajouter"
+        title={ui.experiencesTitre}
+        addLabel={ui.ajouter}
         onAdd={() => setData((d) => ({ ...d, experiences: [...d.experiences, { ...emptyExperience }] }))}
       >
         {data.experiences.map((exp, i) => (
@@ -284,17 +351,17 @@ export default function Editor({ data, setData, focusTarget, appearance, setAppe
               setData((d) => ({ ...d, experiences: d.experiences.filter((_, j) => j !== i) }))
             }
           >
-            <Field label="Poste" value={exp.poste} onChange={(v) => setExperience(i, 'poste', v)} />
+            <Field label={ui.poste} value={exp.poste} onChange={(v) => setExperience(i, 'poste', v)} />
             <div className="grid grid-cols-2 gap-2">
-              <Field label="Entreprise" value={exp.entreprise} onChange={(v) => setExperience(i, 'entreprise', v)} />
-              <Field label="Lieu" value={exp.lieu} onChange={(v) => setExperience(i, 'lieu', v)} />
+              <Field label={ui.entreprise} value={exp.entreprise} onChange={(v) => setExperience(i, 'entreprise', v)} />
+              <Field label={ui.lieu} value={exp.lieu} onChange={(v) => setExperience(i, 'lieu', v)} />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Field label="Début" value={exp.debut} onChange={(v) => setExperience(i, 'debut', v)} placeholder="2022" />
-              <Field label="Fin" value={exp.fin} onChange={(v) => setExperience(i, 'fin', v)} placeholder="Présent" />
+              <Field label={ui.debut} value={exp.debut} onChange={(v) => setExperience(i, 'debut', v)} placeholder={ui.debutPlaceholder} />
+              <Field label={ui.fin} value={exp.fin} onChange={(v) => setExperience(i, 'fin', v)} placeholder={ui.finPlaceholder} />
             </div>
             <Field
-              label="Description (une ligne par point)"
+              label={ui.description}
               textarea
               value={exp.description}
               onChange={(v) => setExperience(i, 'description', v)}
@@ -304,8 +371,8 @@ export default function Editor({ data, setData, focusTarget, appearance, setAppe
       </Section>
 
       <Section
-        title="Formation"
-        addLabel="Ajouter"
+        title={ui.formationTitre}
+        addLabel={ui.ajouter}
         onAdd={() => setData((d) => ({ ...d, formations: [...d.formations, { ...emptyEducation }] }))}
       >
         {data.formations.map((f, i) => (
@@ -316,22 +383,22 @@ export default function Editor({ data, setData, focusTarget, appearance, setAppe
               setData((d) => ({ ...d, formations: d.formations.filter((_, j) => j !== i) }))
             }
           >
-            <Field label="Diplôme" value={f.diplome} onChange={(v) => setFormation(i, 'diplome', v)} />
+            <Field label={ui.diplome} value={f.diplome} onChange={(v) => setFormation(i, 'diplome', v)} />
             <div className="grid grid-cols-2 gap-2">
-              <Field label="Établissement" value={f.etablissement} onChange={(v) => setFormation(i, 'etablissement', v)} />
-              <Field label="Lieu" value={f.lieu} onChange={(v) => setFormation(i, 'lieu', v)} />
+              <Field label={ui.etablissement} value={f.etablissement} onChange={(v) => setFormation(i, 'etablissement', v)} />
+              <Field label={ui.lieu} value={f.lieu} onChange={(v) => setFormation(i, 'lieu', v)} />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Field label="Début" value={f.debut} onChange={(v) => setFormation(i, 'debut', v)} />
-              <Field label="Fin" value={f.fin} onChange={(v) => setFormation(i, 'fin', v)} />
+              <Field label={ui.debut} value={f.debut} onChange={(v) => setFormation(i, 'debut', v)} />
+              <Field label={ui.fin} value={f.fin} onChange={(v) => setFormation(i, 'fin', v)} />
             </div>
           </RepeatableCard>
         ))}
       </Section>
 
       <Section
-        title="Compétences"
-        addLabel="Ajouter"
+        title={ui.competencesTitre}
+        addLabel={ui.ajouter}
         editId="competences"
         onAdd={() =>
           setData((d) => ({ ...d, competences: [...d.competences, { ...emptyCompetence }] }))
@@ -346,7 +413,7 @@ export default function Editor({ data, setData, focusTarget, appearance, setAppe
             }
           >
             <Field
-              label="Compétence"
+              label={ui.competence}
               value={c.nom}
               onChange={(v) =>
                 setData((d) => {
@@ -358,7 +425,7 @@ export default function Editor({ data, setData, focusTarget, appearance, setAppe
             />
             <label className="block">
               <span className="mb-1 block text-xs font-medium text-slate-600">
-                Niveau — {c.niveau}%
+                {ui.niveauPourcent(c.niveau)}
               </span>
               <input
                 type="range"
@@ -380,8 +447,8 @@ export default function Editor({ data, setData, focusTarget, appearance, setAppe
       </Section>
 
       <Section
-        title="Langues"
-        addLabel="Ajouter"
+        title={ui.languesTitre}
+        addLabel={ui.ajouter}
         editId="langues"
         onAdd={() => setData((d) => ({ ...d, langues: [...d.langues, { langue: '', niveau: '' }] }))}
       >
@@ -393,7 +460,7 @@ export default function Editor({ data, setData, focusTarget, appearance, setAppe
           >
             <div className="grid grid-cols-2 gap-2">
               <Field
-                label="Langue"
+                label={ui.langue}
                 value={l.langue}
                 onChange={(v) =>
                   setData((d) => {
@@ -404,7 +471,7 @@ export default function Editor({ data, setData, focusTarget, appearance, setAppe
                 }
               />
               <Field
-                label="Niveau"
+                label={ui.niveau}
                 value={l.niveau}
                 onChange={(v) =>
                   setData((d) => {

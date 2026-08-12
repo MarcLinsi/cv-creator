@@ -12,8 +12,32 @@ Application 100 % front-end — aucun serveur, aucune donnée envoyée nulle par
 - **Clic pour éditer** — survoler un bloc de l'aperçu le surligne, cliquer dessus place le focus sur le champ correspondant dans l'éditeur
 - **Apparence** — choix de la police, de la taille du texte et de la couleur d'accent (8 teintes, chaque template ayant la sienne par défaut)
 - **Photo optionnelle** — chargée depuis le disque, encodée dans la page
+- **Deux langues indépendantes** — voir ci-dessous
 - **Sauvegarde et import** — voir ci-dessous
 - **Export PDF vectoriel** — voir ci-dessous
+
+## Langues
+
+Deux langues coexistent, et elles sont **indépendantes** :
+
+- **la langue du site** pilote la barre du haut et l'éditeur. Elle se règle par le menu déroulant à côté de « Télécharger le PDF » ;
+- **la langue du CV** ne pilote que les libellés non saisissables du document — titres de section, mention « (suite) », rubriques de la colonne latérale du template Moderne. Elle se règle dans le panneau **Apparence**, avec la police et la couleur, parce que c'est un réglage du document et non de l'application.
+
+Le contenu saisi n'est jamais traduit : changer de langue ne touche qu'aux libellés que l'utilisateur ne peut pas modifier.
+
+Par défaut la langue du CV **suit** celle du site. Ce suivi est un état à part entière (`cvLang: null`), distinct d'un choix explicite : tant qu'on n'a rien fixé, changer la langue du site emmène le CV avec elle ; dès qu'on fixe la langue du CV, elle ne bouge plus. On peut donc travailler en français sur un CV rédigé en anglais, et l'inverse.
+
+La langue du site renseigne `<html lang>` — dont dépendent la césure et la correction orthographique des champs — et celle du CV renseigne le `lang` de chaque page A4, dont dépend la césure dans le PDF.
+
+### Ajouter une langue
+
+Copier [`src/i18n/fr.js`](src/i18n/fr.js), traduire, puis déclarer le fichier dans [`src/i18n/index.jsx`](src/i18n/index.jsx) :
+
+```js
+export const dictionaries = { fr, en, es }
+```
+
+Aucun autre fichier n'est à toucher : les sélecteurs se remplissent depuis ce registre. Chaque dictionnaire sépare `ui` (interface) de `cv` (document) — c'est cette séparation qui rend les deux langues indépendantes.
 
 ## Sauvegarde et import
 
@@ -118,6 +142,8 @@ src/
   lib/paginate.js                Moteur de répartition en pages et colonnes (pur, sans DOM)
   lib/resumeFile.js              Export/import JSON + normalisation défensive des entrées
   lib/storage.js                 Sauvegarde automatique dans le localStorage
+  i18n/                          Un dictionnaire par langue (ui + cv) et le registre
+  components/LanguageMenu.jsx    Menu déroulant de la langue du site
   components/ResumeMeasurer.jsx  Mesure hors écran des capacités et des hauteurs de blocs
   components/ResumePages.jsx     Rend un plan de pages (utilisé par l'aperçu et par le PDF)
   components/Editor.jsx          Formulaire d'édition

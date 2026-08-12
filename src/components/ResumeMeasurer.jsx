@@ -19,7 +19,7 @@ import { blockKey, titleKey } from '../lib/paginate'
  * hauteur disponible. Dans les deux cas le moteur croirait avoir plus de place
  * qu'il n'y en a, et la colonne déborderait.
  */
-export default function ResumeMeasurer({ template, data, sections, accent, appearance, onMeasure }) {
+export default function ResumeMeasurer({ template, data, sections, accent, appearance, t, onMeasure }) {
   const { Page, Banner, SectionTitle, columns, columnGap } = template
   const firstCapacityRef = useRef(null)
   const restCapacityRef = useRef(null)
@@ -102,7 +102,8 @@ export default function ResumeMeasurer({ template, data, sections, accent, appea
         accent={accent}
         pageIndex={pageIndex}
         pageCount={pageIndex + 1}
-        banner={pageIndex === 0 && Banner ? <Banner data={data} accent={accent} /> : null}
+        t={t}
+        banner={pageIndex === 0 && Banner ? <Banner data={data} accent={accent} t={t} /> : null}
       >
         {grid(
           <div ref={ref} className="cv-flow-col min-w-0">
@@ -127,10 +128,10 @@ export default function ResumeMeasurer({ template, data, sections, accent, appea
         sections.map((section) => (
           <div key={section.key}>
             <div ref={setItemRef(titleKey(section.key, false))}>
-              <SectionTitle section={section} accent={accent} repeated={false} gapBefore={false} />
+              <SectionTitle section={section} accent={accent} t={t} repeated={false} gapBefore={false} />
             </div>
             <div ref={setItemRef(titleKey(section.key, true))}>
-              <SectionTitle section={section} accent={accent} repeated gapBefore={false} />
+              <SectionTitle section={section} accent={accent} t={t} repeated gapBefore={false} />
             </div>
             {section.blocks.map((block) => (
               <div key={block.key} ref={setItemRef(blockKey(section.key, block.key))}>

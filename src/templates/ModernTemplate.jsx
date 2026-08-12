@@ -8,7 +8,7 @@ function lines(text) {
  * Ses rubriques (contact, compétences, langues) restent hors du flux, comme
  * dans le rendu d'origine.
  */
-function Sidebar({ data, accent, pageIndex }) {
+function Sidebar({ data, accent, pageIndex, t }) {
   const { infos } = data
   return (
     <aside className="w-[34%] shrink-0 p-6 text-white" style={{ backgroundColor: accent }}>
@@ -48,7 +48,7 @@ function Sidebar({ data, accent, pageIndex }) {
 
       {data.competences.length > 0 && (
         <div className="mt-6" data-edit-id="competences">
-          <h2 className="mb-2 text-xs font-bold uppercase tracking-wider">Compétences</h2>
+          <h2 className="mb-2 text-xs font-bold uppercase tracking-wider">{t.competences}</h2>
           <ul className="space-y-1">
             {data.competences.map((c, i) => (
               <li key={i} className="text-[length:calc(var(--cv-fs)*11px)] text-white/90">
@@ -61,7 +61,7 @@ function Sidebar({ data, accent, pageIndex }) {
 
       {data.langues.length > 0 && (
         <div className="mt-6" data-edit-id="langues">
-          <h2 className="mb-2 text-xs font-bold uppercase tracking-wider">Langues</h2>
+          <h2 className="mb-2 text-xs font-bold uppercase tracking-wider">{t.langues}</h2>
           <ul className="space-y-1">
             {data.langues.map((l, i) => (
               <li key={i} className="text-[length:calc(var(--cv-fs)*11px)] text-white/90">
@@ -76,34 +76,34 @@ function Sidebar({ data, accent, pageIndex }) {
   )
 }
 
-function Page({ data, accent, pageIndex, children }) {
+function Page({ data, accent, pageIndex, children, t }) {
   return (
     <div className="flex h-full min-h-full font-sans text-[length:calc(var(--cv-fs)*12px)] leading-relaxed text-slate-700">
-      <Sidebar data={data} accent={accent} pageIndex={pageIndex} />
+      <Sidebar data={data} accent={accent} pageIndex={pageIndex} t={t} />
       <main className="cv-flow min-h-0 flex-1 overflow-hidden p-7">{children}</main>
     </div>
   )
 }
 
-function SectionTitle({ section, accent, repeated, gapBefore }) {
+function SectionTitle({ section, accent, t, repeated, gapBefore }) {
   return (
     <h2
       className={`pb-3 text-sm font-bold uppercase tracking-wide${gapBefore ? ' pt-6' : ''}`}
       style={{ color: accent }}
     >
       {section.title}
-      {repeated && <span className="ml-2 text-xs font-normal normal-case tracking-normal opacity-60">(suite)</span>}
+      {repeated && <span className="ml-2 text-xs font-normal normal-case tracking-normal opacity-60">{t.suite}</span>}
     </h2>
   )
 }
 
-function buildSections({ data }) {
+function buildSections({ data, t }) {
   const sections = []
 
   if (data.resume) {
     sections.push({
       key: 'profil',
-      title: 'Profil',
+      title: t.profil,
       blocks: [
         {
           key: 'texte',
@@ -155,13 +155,13 @@ function buildSections({ data }) {
         })
       })
     })
-    sections.push({ key: 'experiences', title: 'Expériences', blocks })
+    sections.push({ key: 'experiences', title: t.experiences, blocks })
   }
 
   if (data.formations.length) {
     sections.push({
       key: 'formations',
-      title: 'Formation',
+      title: t.formations,
       blocks: data.formations.map((f, i) => ({
         key: String(i),
         node: (

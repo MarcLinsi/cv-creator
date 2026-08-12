@@ -197,7 +197,7 @@ function Page({ data, accent, pageIndex, banner, children }) {
 // Espacements en padding et jamais en marge : une marge fusionne avec celle de
 // son conteneur et échappe alors à la mesure, si bien que le moteur croirait la
 // colonne moins remplie qu'elle ne l'est et la ferait déborder.
-function SectionTitle({ section, repeated, gapBefore }) {
+function SectionTitle({ section, t, repeated, gapBefore }) {
   return (
     <h2
       className={`flex items-center gap-2 pb-3 text-[length:calc(var(--cv-fs)*15px)] font-bold text-slate-900${
@@ -208,7 +208,7 @@ function SectionTitle({ section, repeated, gapBefore }) {
         <Icon d={ICONS[section.key]} className="h-4 w-4" />
       </span>
       {section.title}
-      {repeated && <span className="text-[length:calc(var(--cv-fs)*11px)] font-normal text-slate-400">(suite)</span>}
+      {repeated && <span className="text-[length:calc(var(--cv-fs)*11px)] font-normal text-slate-400">{t.suite}</span>}
     </h2>
   )
 }
@@ -216,7 +216,7 @@ function SectionTitle({ section, repeated, gapBefore }) {
 // L'espacement vertical de chaque bloc est porté par un padding et non par une
 // marge : le moteur mesure des rectangles, et une marge — qui fusionne avec ses
 // voisines — fausserait le remplissage des colonnes.
-function buildSections({ data, accent }) {
+function buildSections({ data, accent, t }) {
   const sections = []
 
   if (data.experiences.length) {
@@ -252,13 +252,13 @@ function buildSections({ data, accent }) {
         })
       })
     })
-    sections.push({ key: 'experiences', title: 'Expériences professionnelles', blocks })
+    sections.push({ key: 'experiences', title: t.experiences, blocks })
   }
 
   if (data.formations.length) {
     sections.push({
       key: 'formations',
-      title: 'Formation',
+      title: t.formations,
       blocks: data.formations.map((f, i) => ({
         key: String(i),
         node: (
@@ -281,7 +281,7 @@ function buildSections({ data, accent }) {
       keepWithNext: true,
       node: (
         <p className="pb-1.5 text-[length:calc(var(--cv-fs)*10px)] font-semibold uppercase tracking-wider text-slate-400">
-          – Langues
+          – {t.langues}
         </p>
       ),
     })
@@ -308,7 +308,7 @@ function buildSections({ data, accent }) {
       keepWithNext: true,
       node: (
         <p className="pb-2 text-[length:calc(var(--cv-fs)*10px)] font-semibold uppercase tracking-wider text-slate-400">
-          – Hard skills
+          – {t.hardSkills}
         </p>
       ),
     })
@@ -336,7 +336,7 @@ function buildSections({ data, accent }) {
       })
     })
   }
-  if (competences.length) sections.push({ key: 'competences', title: 'Compétences', blocks: competences })
+  if (competences.length) sections.push({ key: 'competences', title: t.competences, blocks: competences })
 
   return sections
 }

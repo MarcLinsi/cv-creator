@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Editor from './components/Editor'
+import LanguageMenu from './components/LanguageMenu'
 import ResumeMeasurer from './components/ResumeMeasurer'
 import ResumePages from './components/ResumePages'
 import { paginate } from './lib/paginate'
@@ -7,6 +8,7 @@ import { downloadResume, parseResumeFile } from './lib/resumeFile'
 import { chargerBrouillon, enregistrerBrouillon } from './lib/storage'
 import { sampleResume } from './data/resume'
 import { templates, templateKeys } from './templates'
+import { DEFAULT_LOCALE, dictionary, isLocale, localeList, UiLanguageProvider } from './i18n'
 
 const ACCENTS = ['#86c06a', '#4f46e5', '#0d9488', '#dc2626', '#1e3a5f', '#7c3aed', '#ea580c', '#0f172a']
 
@@ -33,6 +35,8 @@ const BROUILLON = (() => {
     templateKey: key,
     accent: b?.settings.accent || templates[key].defaultAccent,
     appearance: b?.settings.appearance ?? { font: 'auto', scale: 1 },
+    uiLang: isLocale(b?.settings.uiLang) ? b.settings.uiLang : DEFAULT_LOCALE,
+    cvLang: isLocale(b?.settings.cvLang) ? b.settings.cvLang : null,
   }
 })()
 
@@ -45,6 +49,15 @@ export default function App() {
   const [appearance, setAppearance] = useState(BROUILLON.appearance)
   const [metrics, setMetrics] = useState(null)
   const [notice, setNotice] = useState(null)
+  const [uiLang, setUiLang] = useState(BROUILLON.uiLang)
+  // `null` signifie « suit la langue du site ». C'est ce qui permet à la langue
+  // du CV de suivre par défaut sans jamais s'y retrouver soudée : dès qu'on la
+  // fixe, elle cesse de bouger.
+  const [cvLangChoisie, setCvLangChoisie] = useState(BROUILLON.cvLang)
+  const cvLang = cvLangChoisie ?? uiLang
+
+  const ui = dictionary(uiLang).ui
+  const cvT = dictionary(cvLang).cv
 
   const previewWrapRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -75,8 +88,8 @@ export default function App() {
   }
 
   const sections = useMemo(
-    () => template.buildSections({ data, accent }),
-    [template, data, accent],
+    () => template.buildSections({ data, accent, t: cvT }),
+    [template, data, accent, cvT],
   )
 
   // Le plan de pages : c'est lui, et lui seul, que consomment l'aperçu et la
@@ -112,14 +125,22 @@ export default function App() {
 
   // Sauvegarde automatique, différée : sans ce délai, chaque frappe au clavier
   // réécrirait tout le CV — photo comprise — dans le localStorage.
+  const reglages = { templateKey, accent, appearance, uiLang, cvLang: cvLangChoisie }
+
   useEffect(() => {
     const id = setTimeout(() => {
-      setNotice(enregistrerBrouillon(data, { templateKey, accent, appearance }))
+      setNotice(enregistrerBrouillon(data, { templateKey, accent, appearance, uiLang, cvLang: cvLangChoisie }))
     }, 400)
     return () => clearTimeout(id)
-  }, [data, templateKey, accent, appearance])
+  }, [data, templateKey, accent, appearance, uiLang, cvLangChoisie])
 
-  const exporterFichier = () => downloadResume(data, { templateKey, accent, appearance })
+  // La langue de l'interface renseigne aussi l'attribut lang du document, dont
+  // dépendent la césure et la correction orthographique des champs de saisie.
+  useEffect(() => {
+    document.documentElement.lang = uiLang
+  }, [uiLang])
+
+  const exporterFichier = () => downloadResume(data, reglages)
 
   const importerFichier = async (e) => {
     const fichier = e.target.files?.[0]
@@ -133,6 +154,10 @@ export default function App() {
       if (templates[settings.templateKey]) setTemplateKey(settings.templateKey)
       if (settings.accent) setAccent(settings.accent)
       setAppearance(settings.appearance)
+      if (isLocale(settings.uiLang)) setUiLang(settings.uiLang)
+      // Une langue de CV absente du fichier remet le suivi automatique, ce qui
+      // est bien le comportement par défaut attendu.
+      setCvLangChoisie(isLocale(settings.cvLang) ? settings.cvLang : null)
       setNotice(null)
     } catch (err) {
       setNotice(err.message)
@@ -157,10 +182,12 @@ export default function App() {
     window.print()
   }
 
-  const pagesProps = { template, data, sections, accent, appearance, pages }
+  const pagesProps = { template, data, sections, accent, appearance, pages, t: cvT, lang: cvLang }
 
   return (
-    <>
+    // L'éditeur puise ses libellés dans ce contexte plutôt que de les recevoir
+    // en props à travers toute sa hiérarchie de champs.
+    <UiLanguageProvider locale={uiLang}>
       <div className="app-shell flex h-screen flex-col">
         {/* Top bar */}
         <header className="flex flex-wrap items-center justify-between gap-y-2 border-b border-slate-200 bg-white px-6 py-3">
@@ -169,7 +196,7 @@ export default function App() {
             {/* Le sous-titre est décoratif : il disparaît en premier plutôt que
                 de pousser les commandes sur une ligne supplémentaire. */}
             <span className="hidden whitespace-nowrap text-xs text-slate-400 xl:inline">
-              générateur de CV
+              {ui.tagline}
             </span>
           </div>
 
@@ -195,16 +222,16 @@ export default function App() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
-                title="Charger un CV depuis un fichier .json"
+                title={ui.importerTitre}
               >
-                Importer
+                {ui.importer}
               </button>
               <button
                 onClick={exporterFichier}
                 className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
-                title="Enregistrer le CV dans un fichier .json"
+                title={ui.exporterTitre}
               >
-                Exporter
+                {ui.exporter}
               </button>
               <input
                 ref={fileInputRef}
@@ -215,11 +242,18 @@ export default function App() {
               />
             </div>
 
+            <LanguageMenu
+              value={uiLang}
+              options={localeList}
+              onChange={setUiLang}
+              label={ui.langueSite}
+            />
+
             <button
               onClick={exportPdf}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
             >
-              Télécharger le PDF
+              {ui.telechargerPdf}
             </button>
           </div>
         </header>
@@ -231,7 +265,7 @@ export default function App() {
               onClick={() => setNotice(null)}
               className="shrink-0 rounded px-2 font-medium text-amber-700 hover:bg-amber-100"
             >
-              Fermer
+              {ui.fermer}
             </button>
           </div>
         )}
@@ -249,6 +283,10 @@ export default function App() {
               accent={accent}
               setAccent={setAccent}
               accents={ACCENTS}
+              locales={localeList}
+              cvLangChoisie={cvLangChoisie}
+              setCvLangChoisie={setCvLangChoisie}
+              langueSuivieLabel={dictionary(uiLang).label}
             />
           </div>
 
@@ -287,6 +325,7 @@ export default function App() {
         sections={sections}
         accent={accent}
         appearance={appearance}
+        t={cvT}
         onMeasure={setMetrics}
       />
 
@@ -295,6 +334,6 @@ export default function App() {
       <div className="cv-print-source" aria-hidden>
         <ResumePages {...pagesProps} />
       </div>
-    </>
+    </UiLanguageProvider>
   )
 }
